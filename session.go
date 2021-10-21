@@ -188,8 +188,8 @@ func (s *Session) CloseWithMsg(msg []byte) error {
 // Set is used to store a new key/value pair exclusivelly for this session.
 // It also lazy initializes s.Keys if it was not used previously.
 func (s *Session) Set(key string, value interface{}) {
-	s.keymutex.RLock()
-	defer s.keymutex.RUnlock()
+	s.keymutex.Lock()
+	defer s.keymutex.Unlock()
 	if s.Keys == nil {
 		s.Keys = make(map[string]interface{})
 	}

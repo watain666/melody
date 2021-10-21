@@ -11,13 +11,14 @@ import (
 
 // Session wrapper around websocket connections.
 type Session struct {
-	Request *http.Request
-	Keys    map[string]interface{}
-	conn    *websocket.Conn
-	output  chan *envelope
-	melody  *Melody
-	open    bool
-	rwmutex *sync.RWMutex
+	Request  *http.Request
+	Keys     map[string]interface{}
+	keymutex *sync.RWMutex
+	conn     *websocket.Conn
+	output   chan *envelope
+	melody   *Melody
+	open     bool
+	rwmutex  *sync.RWMutex
 }
 
 func (s *Session) writeMessage(message *envelope) {
@@ -187,8 +188,8 @@ func (s *Session) CloseWithMsg(msg []byte) error {
 // Set is used to store a new key/value pair exclusivelly for this session.
 // It also lazy initializes s.Keys if it was not used previously.
 func (s *Session) Set(key string, value interface{}) {
-	s.rwmutex.RLock()
-	defer s.rwmutex.RUnlock()
+	s.keymutex.RLock()
+	defer s.keymutex.RUnlock()
 	if s.Keys == nil {
 		s.Keys = make(map[string]interface{})
 	}
@@ -199,9 +200,9 @@ func (s *Session) Set(key string, value interface{}) {
 // Get returns the value for the given key, ie: (value, true).
 // If the value does not exists it returns (nil, false)
 func (s *Session) Get(key string) (value interface{}, exists bool) {
+	s.keymutex.RLock()
+	defer s.keymutex.RUnlock()
 	if s.Keys != nil {
-		s.rwmutex.RLock()
-		defer s.rwmutex.RUnlock()
 		value, exists = s.Keys[key]
 	}
 

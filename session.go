@@ -200,8 +200,8 @@ func (s *Session) Set(key string, value interface{}) {
 // Get returns the value for the given key, ie: (value, true).
 // If the value does not exists it returns (nil, false)
 func (s *Session) Get(key string) (value interface{}, exists bool) {
-	s.keymutex.RLock()
-	defer s.keymutex.RUnlock()
+	s.keymutex.Lock()
+	defer s.keymutex.Unlock()
 	if s.Keys != nil {
 		value, exists = s.Keys[key]
 	}
